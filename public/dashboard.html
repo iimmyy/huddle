@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incident Investigator, Dashboard</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <div class="mesh-orb orb-1"></div>
+  <div class="mesh-orb orb-2"></div>
+  <div class="mesh-orb orb-3"></div>
+  <div class="mesh-orb orb-4"></div>
+  <div class="mesh-orb orb-5"></div>
+
+  <div class="dashboard">
+
+    <!-- ===== LOBBY PHASE ===== -->
+    <div id="dash-lobby" class="lobby-phase">
+      <div class="lobby-top">
+        <div class="game-badge">PHTE 205</div>
+        <div class="timer-settings" id="timer-settings">
+          <button class="timer-btn" id="timer-minus">-</button>
+          <span class="timer-value" id="timer-value">8</span>
+          <button class="timer-btn" id="timer-plus">+</button>
+          <span style="color: var(--text-dim); font-size: 13px;">min</span>
+        </div>
+      </div>
+
+      <div class="lobby-center">
+        <h1 class="game-title">Incident Investigator</h1>
+        <p class="game-subtitle">A Pharmacy Safety Huddle</p>
+
+        <div class="code-block">
+          <div class="code-glow-wrap">
+            <div class="room-code-huge" id="lobby-code-huge">----</div>
+          </div>
+          <div class="join-url-badge">Join at <span id="join-url"></span></div>
+        </div>
+      </div>
+
+      <div class="lobby-bottom">
+        <div class="roster-section">
+          <div class="player-count" id="player-count">Waiting for investigators...</div>
+          <div class="player-roster" id="player-roster"></div>
+        </div>
+
+        <button id="start-btn" class="btn btn-primary launch-btn" style="display:none;">
+          Launch Investigation
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== INVESTIGATION PHASE ===== -->
+    <div id="dash-investigation" class="investigation-phase" style="display:none;">
+      <div class="invest-header">
+        <h1 class="invest-title">Investigation In Progress</h1>
+        <div class="invest-meta">
+          <div class="room-code-value" id="header-room-code">----</div>
+          <div class="timer-display" id="timer-display">--:--</div>
+          <button id="end-btn" class="btn btn-danger">End</button>
+        </div>
+      </div>
+
+      <div class="invest-body">
+        <div class="tree-area">
+          <div class="investigation-tree" id="investigation-tree">
+            <!-- Built dynamically -->
+          </div>
+        </div>
+
+        <div class="activity-sidebar">
+          <div class="sidebar-header">Live Activity</div>
+          <div class="activity-feed" id="activity-feed"></div>
+          <div class="progress-bar-container">
+            <div class="progress-label" id="progress-label">0 / 0 complete</div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ASSEMBLY PHASE ===== -->
+    <div id="dash-assembly" class="assembly-phase" style="display:none;">
+      <h2 class="assembly-title">The Full Incident Analysis</h2>
+      <div class="assembly-tree" id="assembly-tree">
+        <!-- Built dynamically -->
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

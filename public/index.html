@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Incident Investigator</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/player.css">
+</head>
+<body>
+
+  <div class="mesh-orb orb-1"></div>
+  <div class="mesh-orb orb-2"></div>
+  <div class="mesh-orb orb-3"></div>
+  <div class="mesh-orb orb-4"></div>
+  <div class="mesh-orb orb-5"></div>
+
+  <!-- JOIN SCREEN -->
+  <div id="join-screen" class="screen active">
+    <div class="join-hero">
+      <div class="join-emoji">&#128270;</div>
+      <h1>Incident<br>Investigator</h1>
+    </div>
+    <div class="join-card card">
+      <div class="join-card-label">Enter Access Code</div>
+      <div class="code-boxes" id="code-boxes">
+        <input type="text" class="code-box" maxlength="1" data-index="0" autocomplete="off" inputmode="text">
+        <input type="text" class="code-box" maxlength="1" data-index="1" autocomplete="off" inputmode="text">
+        <input type="text" class="code-box" maxlength="1" data-index="2" autocomplete="off" inputmode="text">
+        <input type="text" class="code-box" maxlength="1" data-index="3" autocomplete="off" inputmode="text">
+      </div>
+      <input type="text" id="name-input" class="input name-input" placeholder="Your name" maxlength="20" autocomplete="off">
+      <button id="join-btn" class="btn btn-primary" disabled>Join Investigation</button>
+      <div id="join-error" class="join-error"></div>
+    </div>
+  </div>
+
+  <!-- LOBBY SCREEN -->
+  <div id="lobby-screen" class="screen">
+    <div class="lobby-waiting">
+      <div class="lobby-emoji">&#9203;</div>
+      <h2>You're in!</h2>
+      <div class="room-code-display" id="lobby-room-code"></div>
+      <p class="waiting-pulse">Sit tight, the investigation is about to begin...</p>
+    </div>
+  </div>
+
+  <!-- INVESTIGATION SCREEN -->
+  <div id="investigation-screen" class="screen">
+    <!-- Hidden, still used by JS -->
+    <span id="scene-title" style="display:none;"></span>
+    <span id="player-timer" style="display:none;"></span>
+    <div id="timer-fill" style="display:none;"></div>
+    <p id="scene-setup" style="display:none;"></p>
+
+    <!-- Story scroll area -->
+    <div class="story" id="chat-container">
+      <div class="typing-indicator" id="typing-indicator">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- Bottom: choices + input -->
+    <div class="actions">
+      <div class="choices" id="suggestion-chips"></div>
+      <div class="type-row">
+        <input type="text" id="chat-input" placeholder="Type something..." autocomplete="off">
+        <button id="send-btn" aria-label="Send">&uarr;</button>
+      </div>
+      <button id="submit-findings-btn" class="submit-text">Submit findings</button>
+    </div>
+  </div>
+
+  <!-- HOW TO PLAY MODAL -->
+  <div id="tips-modal" class="modal-backdrop">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-label">CLASSIFIED BRIEFING</div>
+      <h2>A patient received the <strong>wrong insulin</strong> and ended up in the ER.</h2>
+      <p class="modal-sub">Multiple things went wrong. You're investigating <strong>one piece</strong> of the puzzle.</p>
+      <div class="modal-steps">
+        <div class="modal-step"><span class="step-num">1</span> <strong>Explore</strong>, examine evidence and question witnesses.</div>
+        <div class="modal-step"><span class="step-num">2</span> <strong>Dig</strong>, find the root cause, not just "someone made a mistake."</div>
+        <div class="modal-step"><span class="step-num">3</span> <strong>Fix</strong>, propose a system-level solution.</div>
+      </div>
+      <button id="tips-dismiss" class="modal-go">Begin Investigation</button>
+    </div>
+  </div>
+
+  <!-- SUBMISSION OVERLAY -->
+  <div id="submission-overlay" class="modal-backdrop">
+    <div class="modal-sheet modal-sheet-full">
+      <div class="modal-handle"></div>
+      <h3 class="modal-title">Your Findings</h3>
+      <div class="field">
+        <label>What went wrong?</label>
+        <textarea id="finding-what" placeholder="Describe the root cause..."></textarea>
+      </div>
+      <div class="field">
+        <label>Proposed fix</label>
+        <textarea id="finding-fix" placeholder="How would you prevent this?"></textarea>
+      </div>
+      <div class="modal-row">
+        <button id="cancel-submit" class="modal-back">&larr; Back</button>
+        <button id="confirm-submit" class="modal-go" disabled>Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARE YOU SURE? OVERLAY -->
+  <div id="confirm-overlay" class="modal-backdrop">
+    <div class="modal-sheet" style="text-align:center;">
+      <div class="modal-handle"></div>
+      <div style="font-size:48px; margin-bottom:8px;">&#9888;&#65039;</div>
+      <h3 class="modal-title">Are you sure?</h3>
+      <p style="color:#8E8E93; margin-bottom:16px;">Once submitted, your findings are final.</p>
+      <div class="gamble-box">
+        <p>Or go back for <strong>one more question</strong>.</p>
+        <p class="gamble-risk">Choose wisely, a bad question could hurt your score.</p>
+      </div>
+      <div class="modal-stack">
+        <button id="final-submit-btn" class="modal-go">Submit Final Answer</button>
+        <button id="gamble-btn" class="modal-back">One More Question</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORING OVERLAY -->
+  <div id="scoring-overlay" class="modal-backdrop">
+    <div class="modal-sheet" style="text-align:center; padding:48px 24px;">
+      <div class="scoring-dots"><span></span><span></span><span></span></div>
+      <h3 style="margin-bottom:6px;">Analyzing...</h3>
+      <p style="color:#8E8E93; font-size:14px;">Your investigation is being scored</p>
+    </div>
+  </div>
+
+  <!-- COMPLETE SCREEN -->
+  <div id="complete-screen" class="screen">
+    <div class="end-wrap">
+      <div class="end-check">&#10003;</div>
+      <h2>Investigation Complete</h2>
+      <p>Watch the projector, the full incident tree is being assembled.</p>
+    </div>
+  </div>
+
+  <!-- ASSEMBLY SCREEN -->
+  <div id="assembly-screen" class="screen">
+    <div class="end-wrap">
+      <div style="font-size:64px;">&#127942;</div>
+      <h2>Case Closed</h2>
+      <p>Look up, the full picture is on the projector.</p>
+      <div class="your-finding card" id="assembly-your-finding" style="display:none;">
+        <div class="your-finding-label" id="assembly-your-scene"></div>
+        <div class="your-finding-text" id="assembly-your-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/player.js"></script>
+</body>
+</html>
