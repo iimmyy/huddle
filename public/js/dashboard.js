@@ -45,7 +45,7 @@ socket.emit('host:create-room', (response) => {
 // ===== TIMER SETTINGS =====
 
 timerMinus.addEventListener('click', () => {
-  timerMinutes = Math.max(1, timerMinutes, 1);
+  timerMinutes = Math.max(1, timerMinutes - 1);
   timerValue.textContent = timerMinutes;
   socket.emit('host:set-timer', { code: roomCode, duration: timerMinutes * 60 });
 });
@@ -270,22 +270,33 @@ function showAssembly() {
 function buildAssemblyTree(findings) {
   assemblyTree.innerHTML = '';
 
-  // Root node
-  const root = document.createElement('div');
-  root.className = 'tree-root';
-  root.innerHTML = `
-    <h3>Patient: Severe Hypoglycemia, BG 2.5 mmol/L</h3>
-    <p>Insulin Dispensing Error, Novolin GE 30/70 / Novo-Rapid Mix-Up</p>
+  // Patient incident card
+  const patient = document.createElement('div');
+  patient.className = 'assembly-patient';
+  patient.innerHTML = `
+    <div class="assembly-patient-icon">&#9888;&#65039;</div>
+    <div class="assembly-patient-info">
+      <h3>Patient: Severe Hypoglycemia</h3>
+      <p>BG 2.5 mmol/L &mdash; Insulin Dispensing Error</p>
+      <p class="assembly-patient-detail">Novolin GE 30/70 / Novo-Rapid Mix-Up</p>
+    </div>
   `;
-  assemblyTree.appendChild(root);
+  assemblyTree.appendChild(patient);
 
+  // Vertical connector line
   const conn = document.createElement('div');
-  conn.className = 'tree-connector';
+  conn.className = 'assembly-connector';
   assemblyTree.appendChild(conn);
 
-  // Branches
-  const branches = document.createElement('div');
-  branches.className = 'tree-branches';
+  // "Contributing Factors" label
+  const factorsLabel = document.createElement('div');
+  factorsLabel.className = 'assembly-factors-label';
+  factorsLabel.textContent = 'Contributing Factors';
+  assemblyTree.appendChild(factorsLabel);
+
+  // Root cause cards grid
+  const grid = document.createElement('div');
+  grid.className = 'assembly-grid';
 
   const rcGroups = {};
   findings.forEach(f => {
@@ -293,67 +304,136 @@ function buildAssemblyTree(findings) {
     rcGroups[f.rootCause].push(f);
   });
 
+  // Stats
+  const totalPlayers = findings.length;
+  const completedPlayers = findings.filter(f => f.status === 'complete').length;
+  const avgScore = completedPlayers > 0
+    ? (findings.reduce((sum, f) => sum + (f.score || 0), 0) / completedPlayers).toFixed(1)
+    : '—';
+
   let delay = 0;
   for (let rc = 1; rc <= 5; rc++) {
     const rcInfo = rootCauses[rc];
     if (!rcInfo) continue;
 
-    delay += 200;
-    const group = document.createElement('div');
-    group.className = 'root-cause-group';
-    group.style.animationDelay = `${delay}ms`;
-
-    const label = document.createElement('div');
-    label.className = 'rc-label';
-    label.textContent = rcInfo.label;
-    group.appendChild(label);
-
-    const nodes = document.createElement('div');
-    nodes.className = 'player-nodes';
+    delay += 150;
+    const card = document.createElement('div');
+    card.className = 'assembly-rc-card';
+    card.style.animationDelay = `${delay}ms`;
 
     const players = rcGroups[rc] || [];
+    const investigated = players.length > 0 && players.some(p => p.status === 'complete');
+
+    // Card header
+    const header = document.createElement('div');
+    header.className = 'assembly-rc-header';
+    header.innerHTML = `
+      <div class="assembly-rc-status ${investigated ? 'investigated' : 'gap'}">
+        ${investigated ? '&#10003;' : '?'}
+      </div>
+      <div class="assembly-rc-title">${rcInfo.label}</div>
+    `;
+    card.appendChild(header);
+
+    // Player findings
+    const body = document.createElement('div');
+    body.className = 'assembly-rc-body';
+
     if (players.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'player-node';
-      empty.dataset.status = 'waiting';
-      empty.innerHTML = `<div class="node-name" style="color:var(--text-dim)">Not investigated</div>`;
-      nodes.appendChild(empty);
+      body.innerHTML = `<div class="assembly-empty">No one assigned</div>`;
     } else {
       players.forEach(f => {
-        delay += 100;
-        const node = document.createElement('div');
-        node.className = 'player-node';
-        node.dataset.status = f.status;
-        node.style.animationDelay = `${delay}ms`;
+        delay += 80;
+        const finding = document.createElement('div');
+        finding.className = `assembly-finding ${f.status === 'complete' ? 'complete' : 'incomplete'}`;
+        finding.style.animationDelay = `${delay}ms`;
 
-        let detailHtml = '';
-        if (f.submission) {
-          detailHtml = `<div class="assembly-finding-detail">"${truncate(f.submission.whatWentWrong, 60)}"</div>`;
-        }
-
-        // Score display (1-3 stars)
-        let scoreHtml = '';
+        let starsHtml = '';
         if (f.score > 0) {
-          const stars = '★'.repeat(f.score) + '☆'.repeat(3, f.score);
-          const scoreClass = f.score === 3 ? 'score-high' : f.score === 2 ? 'score-mid' : 'score-low';
-          scoreHtml = `<div class="assembly-score ${scoreClass}">${stars}</div>`;
+          const filled = '★'.repeat(f.score);
+          const empty = '☆'.repeat(3 - f.score);
+          const cls = f.score === 3 ? 'score-high' : f.score === 2 ? 'score-mid' : 'score-low';
+          starsHtml = `<span class="assembly-stars ${cls}">${filled}${empty}</span>`;
         }
 
-        node.innerHTML = `
-          <div class="node-name">${f.name} ${scoreHtml}</div>
-          <div class="node-scene">${f.sceneTitle}</div>
-          ${detailHtml}
+        let quoteHtml = '';
+        if (f.submission && f.submission.whatWentWrong) {
+          quoteHtml = `<div class="assembly-quote">"${truncate(f.submission.whatWentWrong, 80)}"</div>`;
+        }
+
+        let fixHtml = '';
+        if (f.submission && f.submission.proposedFix) {
+          fixHtml = `<div class="assembly-fix"><strong>Fix:</strong> ${truncate(f.submission.proposedFix, 60)}</div>`;
+        }
+
+        finding.innerHTML = `
+          <div class="assembly-finding-top">
+            <div class="assembly-finding-name">${f.name}</div>
+            ${starsHtml}
+          </div>
+          <div class="assembly-finding-scene">${f.sceneTitle}</div>
+          ${quoteHtml}
+          ${fixHtml}
         `;
-        nodes.appendChild(node);
+        body.appendChild(finding);
       });
     }
 
-    group.appendChild(nodes);
-    branches.appendChild(group);
+    card.appendChild(body);
+    grid.appendChild(card);
   }
 
-  assemblyTree.appendChild(branches);
+  assemblyTree.appendChild(grid);
+
+  // Summary bar
+  const summary = document.createElement('div');
+  summary.className = 'assembly-summary';
+  summary.innerHTML = `
+    <div class="assembly-stat">
+      <div class="assembly-stat-value">${completedPlayers}/${totalPlayers}</div>
+      <div class="assembly-stat-label">Investigated</div>
+    </div>
+    <div class="assembly-stat">
+      <div class="assembly-stat-value">${avgScore}</div>
+      <div class="assembly-stat-label">Avg Score</div>
+    </div>
+    <div class="assembly-stat">
+      <div class="assembly-stat-value">${Object.keys(rcGroups).length}/5</div>
+      <div class="assembly-stat-label">Factors Covered</div>
+    </div>
+  `;
+  assemblyTree.appendChild(summary);
 }
+
+// ===== RESTART =====
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+  if (confirm('Start a new game? All current data will be lost.')) {
+    socket.emit('host:restart', { code: roomCode });
+  }
+});
+
+socket.on('host:new-room', ({ code }) => {
+  roomCode = code;
+  headerRoomCode.textContent = roomCode;
+  lobbyCodeHuge.textContent = roomCode;
+  assignments = [];
+  assemblyTree.innerHTML = '';
+  investigationTree.innerHTML = '';
+  activityFeed.innerHTML = '';
+  timerMinutes = 8;
+  timerValue.textContent = '8';
+  timerDisplay.textContent = '--:--';
+  progressLabel.textContent = '0 / 0 complete';
+  progressFill.style.width = '0%';
+  startBtn.style.display = 'inline-flex';
+  startBtn.disabled = false;
+
+  dashLobby.style.display = 'flex';
+  dashInvestigation.style.display = 'none';
+  dashAssembly.style.display = 'none';
+  phase = 'lobby';
+});
 
 function truncate(str, len) {
   if (!str) return '';

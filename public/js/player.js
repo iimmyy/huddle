@@ -190,6 +190,44 @@ socket.on('assembly:data', ({ findings, rootCauses }) => {
   showScreen(assemblyScreen);
 });
 
+// ===== RESTART =====
+
+socket.on('game:restart', () => {
+  sessionStorage.removeItem('playerId');
+  sessionStorage.removeItem('roomCode');
+  playerId = null;
+  roomCode = null;
+  characterName = null;
+  usedExtraQuestion = false;
+  inExtraQuestionMode = false;
+
+  // Clear chat
+  const msgs = chatContainer.querySelectorAll('.chat-message');
+  msgs.forEach(m => m.remove());
+
+  // Clear inputs
+  chatInput.value = '';
+  chatInput.disabled = false;
+  chatInput.placeholder = 'Type something...';
+  sendBtn.disabled = false;
+  findingWhat.value = '';
+  findingFix.value = '';
+
+  // Clear code boxes
+  codeBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+  nameInput.value = '';
+  joinBtn.disabled = true;
+  joinError.textContent = '';
+
+  // Close any open overlays
+  submissionOverlay.classList.remove('active');
+  confirmOverlay.classList.remove('active');
+  document.getElementById('scoring-overlay').classList.remove('active');
+  tipsModal.classList.remove('active');
+
+  showScreen(joinScreen);
+});
+
 // ===== CHAT =====
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

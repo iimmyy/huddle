@@ -131,8 +131,8 @@ io.on('connection', (socket) => {
 
     // Start timer ticks
     room.timerInterval = setInterval(() => {
-      const elapsed = Math.floor((Date.now(), room.timerStartedAt) / 1000);
-      const remaining = Math.max(0, room.timerDuration, elapsed);
+      const elapsed = Math.floor((Date.now() - room.timerStartedAt) / 1000);
+      const remaining = Math.max(0, room.timerDuration - elapsed);
       io.to(`room:${room.code}`).emit('timer:tick', { remaining });
 
       if (remaining <= 0) {
@@ -147,6 +147,27 @@ io.on('connection', (socket) => {
     if (!room || room.hostSocketId !== socket.id) return;
 
     endInvestigation(room);
+  });
+
+  socket.on('host:restart', ({ code }) => {
+    const room = state.getRoom(code);
+    if (!room || room.hostSocketId !== socket.id) return;
+
+    // Notify all players to reset
+    io.to(`room:${room.code}`).emit('game:restart');
+
+    // Clean up old room
+    if (room.timerInterval) clearInterval(room.timerInterval);
+    for (const player of room.players.values()) {
+      ai.destroySession(player.id);
+    }
+    socket.leave(`room:${code}`);
+    state.deleteRoom(code);
+
+    // Create a new room for this host
+    const newRoom = state.createRoom(socket.id);
+    socket.join(`room:${newRoom.code}`);
+    socket.emit('host:new-room', { code: newRoom.code });
   });
 
   socket.on('host:set-timer', ({ code, duration }) => {
@@ -212,7 +233,7 @@ io.on('connection', (socket) => {
 
     // Rate limit: ignore if last message was < 1.5s ago
     const now = Date.now();
-    if (now, player.lastActivity < 1500) return;
+    if (now - player.lastActivity < 1500) return;
     player.lastActivity = now;
 
     // Store player message in history
