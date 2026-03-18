@@ -1,26 +1,28 @@
 /* ==========================================
    DASHBOARD  -  Host/Projector view
-   Same dark aesthetic, wider layout
    ========================================== */
 
 body { overflow: hidden; }
 
-/* ===== LOBBY PHASE ===== */
+/* Hide mesh orbs on dashboard */
+.mesh-orb { display: none; }
+
+/* ===== LOBBY ===== */
 
 .lobby-phase {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   height: 100vh;
-  gap: 24px;
-  padding: 32px;
+  padding: 24px 32px;
 }
 
-.course-badge {
-  position: fixed;
-  top: 20px;
-  left: 24px;
+.lobby-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-badge {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -32,10 +34,7 @@ body { overflow: hidden; }
   border-radius: var(--radius-sm);
 }
 
-.timer-control {
-  position: fixed;
-  top: 20px;
-  right: 24px;
+.timer-settings {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -55,8 +54,6 @@ body { overflow: hidden; }
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  border: none;
 }
 .timer-btn:hover { background: var(--surface-3); }
 
@@ -69,9 +66,16 @@ body { overflow: hidden; }
   text-align: center;
 }
 
-.timer-label { font-size: 13px; color: var(--text-3); }
+.lobby-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
 
-.lobby-title {
+.game-title {
   font-size: clamp(48px, 8vw, 80px);
   font-weight: 800;
   color: var(--text);
@@ -80,13 +84,21 @@ body { overflow: hidden; }
   line-height: 1.05;
 }
 
-.lobby-subtitle {
+.game-subtitle {
   font-size: 16px;
   color: var(--text-3);
   text-align: center;
 }
 
-.room-code {
+.code-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.room-code-huge {
   font-size: clamp(72px, 14vw, 120px);
   font-weight: 800;
   font-family: var(--font-mono);
@@ -95,7 +107,7 @@ body { overflow: hidden; }
   text-align: center;
 }
 
-.join-url {
+.join-url-badge {
   background: var(--surface);
   border: 1px solid rgba(255,255,255,0.04);
   padding: 10px 24px;
@@ -104,67 +116,100 @@ body { overflow: hidden; }
   color: var(--text-2);
 }
 
-.join-url span { color: var(--amber); font-weight: 600; }
+.join-url-badge span { color: var(--amber); font-weight: 600; }
 
-.player-count {
-  font-size: 15px;
-  color: var(--text-3);
+.lobby-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
-#start-btn {
-  padding: 18px 48px;
+.player-count { font-size: 15px; color: var(--text-3); }
+
+.player-roster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.roster-chip {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--text-2);
+  animation: fadeUp 0.3s ease;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: opacity 0.15s;
+}
+.btn:active { opacity: 0.8; }
+
+.btn-primary {
   background: var(--amber);
   color: #1a1714;
+}
+
+.btn-danger {
+  background: var(--red);
+  color: white;
+}
+
+.launch-btn {
+  padding: 18px 48px;
   font-size: 17px;
   font-weight: 700;
   border-radius: var(--radius-sm);
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.15s;
 }
 
-#start-btn:hover { opacity: 0.9; }
-
-/* ===== INVESTIGATION PHASE ===== */
+/* ===== INVESTIGATION ===== */
 
 .investigation-phase {
   display: flex;
+  flex-direction: column;
   height: 100vh;
 }
 
-.investigation-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+.invest-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
   background: var(--surface);
   border-bottom: 1px solid rgba(255,255,255,0.04);
-  z-index: 50;
+  flex-shrink: 0;
 }
 
-.investigation-header h2 {
+.invest-title {
   font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }
 
-.header-right {
+.invest-meta {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.header-code {
+.room-code-value {
   font-family: var(--font-mono);
   font-size: 14px;
   color: var(--text-3);
 }
 
-.header-timer {
+.timer-display {
   font-family: var(--font-mono);
   font-size: 24px;
   font-weight: 700;
@@ -173,35 +218,32 @@ body { overflow: hidden; }
 
 #end-btn {
   padding: 8px 20px;
-  background: var(--red);
-  color: white;
   font-size: 13px;
   font-weight: 600;
   border-radius: var(--radius-sm);
-  border: none;
-  cursor: pointer;
 }
 
-/* Main area */
-.investigation-main {
+.invest-body {
   flex: 1;
-  padding-top: 72px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-y: auto;
-  padding-bottom: 32px;
+  overflow: hidden;
 }
 
-/* Incident tree */
-.incident-tree {
+.tree-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* Investigation tree */
+.investigation-tree {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  padding: 24px;
   width: 100%;
   max-width: 1200px;
+  margin: 0 auto;
 }
 
 .tree-patient {
@@ -266,13 +308,13 @@ body { overflow: hidden; }
 .player-card .player-msgs { color: var(--text-3); font-size: 11px; }
 
 /* Sidebar */
-.investigation-sidebar {
+.activity-sidebar {
   width: 280px;
-  padding-top: 72px;
   border-left: 1px solid rgba(255,255,255,0.04);
   background: var(--surface);
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .sidebar-header {
@@ -301,14 +343,32 @@ body { overflow: hidden; }
 
 .activity-item .activity-name { color: var(--text-2); font-weight: 600; }
 
-.progress-bar {
+.progress-bar-container {
   padding: 16px 20px;
   border-top: 1px solid rgba(255,255,255,0.04);
-  font-size: 13px;
-  color: var(--text-3);
 }
 
-/* ===== ASSEMBLY PHASE ===== */
+.progress-label {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--amber);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* ===== ASSEMBLY ===== */
 
 .assembly-phase {
   display: flex;
@@ -319,9 +379,18 @@ body { overflow: hidden; }
   padding: 32px;
 }
 
-.assembly-phase h2 {
+.assembly-title {
   font-size: 28px;
   font-weight: 800;
   color: var(--text);
   margin-bottom: 32px;
+}
+
+.assembly-tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 1200px;
 }
